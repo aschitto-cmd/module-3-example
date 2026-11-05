@@ -14,6 +14,14 @@ export const MODELS = [
   },
 ] as const;
 
+/**
+ * Gemini's embedding model: turns text into numbers that capture its meaning.
+ * scripts/build-index.mjs uses the same model and size, so a question and the
+ * document passages land in the same "meaning space".
+ */
+export const EMBEDDING_MODEL = "gemini-embedding-001";
+export const EMBEDDING_DIMENSIONS = 768;
+
 export type ModelId = (typeof MODELS)[number]["id"];
 
 /**

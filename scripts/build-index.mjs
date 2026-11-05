@@ -21,7 +21,9 @@ const OUT_FILE = "lib/copper/data/doc-index.json";
 
 const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
 if (!apiKey) {
-  console.error("GOOGLE_GENERATIVE_AI_API_KEY is not set. Run: npm run build-index");
+  console.error(
+    "GOOGLE_GENERATIVE_AI_API_KEY is not set. Run: npm run build-index",
+  );
   process.exit(1);
 }
 
@@ -32,7 +34,8 @@ const documents = [
     /id:\s*"([^"]+)",\s*title:\s*"([^"]+)"[\s\S]*?file:\s*"([^"]+)"/g,
   ),
 ].map(([, id, title, file]) => ({ id, title, file }));
-if (documents.length === 0) throw new Error("No documents found in documents.ts");
+if (documents.length === 0)
+  throw new Error("No documents found in documents.ts");
 
 /** Splits a page's text into sentences. */
 function sentences(text) {
@@ -54,7 +57,11 @@ function passagesOf(pageText) {
   };
   for (const sentence of sentences(pageText)) {
     const length = current.join(" ").length + sentence.length;
-    if (current.length >= SENTENCES_PER_PASSAGE || (current.length && length > MAX_PASSAGE_CHARS)) flush();
+    if (
+      current.length >= SENTENCES_PER_PASSAGE ||
+      (current.length && length > MAX_PASSAGE_CHARS)
+    )
+      flush();
     current.push(sentence);
   }
   flush();
@@ -91,7 +98,10 @@ const { embeddings } = await embedMany({
   model: google.embedding(EMBEDDING_MODEL),
   values: passages.map((p) => p.text),
   providerOptions: {
-    google: { outputDimensionality: DIMENSIONS, taskType: "RETRIEVAL_DOCUMENT" },
+    google: {
+      outputDimensionality: DIMENSIONS,
+      taskType: "RETRIEVAL_DOCUMENT",
+    },
   },
   maxRetries: 5,
 });
@@ -106,7 +116,10 @@ const index = {
   model: EMBEDDING_MODEL,
   dimensions: DIMENSIONS,
   createdAt: new Date().toISOString(),
-  passages: passages.map((p, i) => ({ ...p, embedding: normalise(embeddings[i]) })),
+  passages: passages.map((p, i) => ({
+    ...p,
+    embedding: normalise(embeddings[i]),
+  })),
 };
 
 mkdirSync(dirname(OUT_FILE), { recursive: true });

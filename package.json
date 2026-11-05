@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "start-module": "node scripts/start-module.mjs",
     "env:check": "node scripts/check-env.mjs",
-    "build-index": "node --env-file=.env.local scripts/build-index.mjs"
+    "build-index": "node --env-file=.env.local scripts/build-index.mjs",
+    "try-search": "node --env-file=.env.local scripts/try-search.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.93",

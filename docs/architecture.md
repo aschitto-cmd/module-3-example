@@ -96,3 +96,34 @@ each step. Module 3 teaches it to answer from the customer documents.
 | Instructions | `lib/copper/assistant/instructions.ts` | `COPPER_INSTRUCTIONS`. Copper says it can't help yet with warranty, setup, troubleshooting or privacy |
 | Data | `lib/copper/inventory.ts`, `lib/copper/documents.ts` | Stock from `lib/copper/data/inventory.json`; `DOCUMENTS`: the four customer documents and their PDF paths under `public/docs/`. The PDFs are added in class |
 | AI calls | `{ module: 2, feature: "ask-copper" }` | One streamed call per question |
+
+## Module 3: search_docs (RAG over the customer documents)
+
+**Summary:** Ask Copper can now answer setup, troubleshooting, warranty and
+policy questions from the four PDFs, citing the document and page, with a
+fifth tool, `search_docs`.
+
+| Piece | Where | What it does |
+|---|---|---|
+| Documents | `public/docs/*.pdf` | The four customer PDFs, served at the paths in `lib/copper/documents.ts` |
+| Index build | `scripts/build-index.mjs` (`npm run build-index`) | One-time: splits each page into passages of up to 3 sentences, starts each with its document title, embeds them all and writes `lib/copper/data/doc-index.json` (131 passages, 768 numbers each) |
+| Search | `lib/copper/assistant/search-docs.ts` | Loads the index into memory when the server starts; embeds the question and returns the 5 passages with the highest cosine similarity, each with title, page and a `/docs/<file>.pdf#page=N` link |
+| Tool | `lib/copper/assistant/tools.ts` | `search_docs({ query })` |
+| Instructions | `lib/copper/assistant/instructions.ts` | Use `search_docs` for setup, troubleshooting, warranty and policy; answer only from the passages and cite document and page |
+| Component | `components/copper/ask-copper.tsx` | The `search_docs` tool card lists the 5 passages as links that open the PDF at that page, with their scores |
+| AI calls | `callEmbed` in `lib/ai/call.ts`, `{ module: 3, feature: "search-docs" }` | `gemini-embedding-001`, one short embedding per question (a fraction of a cent) |
+| Try it | `npm run try-search -- "reset Wi-Fi"` | Prints the 5 closest passages for a question, without the chat |
+
+**Data flow:** question → `askCopper` → model calls `search_docs` → embed the
+question → compare with every passage in memory → top 5 back to the model →
+reply with citations.
+
+**Decisions and trade-offs:** no database: four documents (about 1 MB of
+numbers) fit in memory. 768 dimensions instead of 3,072 keeps the file small.
+The build script calls Google directly because it's a plain Node script and
+can't import `lib/ai/call.ts`; the app's question-time call goes through
+`callEmbed`. Re-run `npm run build-index` whenever a PDF changes.
+
+**Risks and open questions:** passages are cut by sentence, so a table row
+can be split across two passages (C-47's meaning and its "contact the Copper
+Crew" line land in neighbouring passages; both are usually in the top 5).
