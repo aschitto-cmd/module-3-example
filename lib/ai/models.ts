@@ -32,6 +32,7 @@ export const DEFAULT_MODEL: ModelId = "google/gemini-2.5-flash";
 
 /** AI_MODEL if it names an approved model, otherwise the default. */
 export function defaultModel(): ModelId {
-  const id = process.env.AI_MODEL;
+  // trim() also drops an invisible byte-order mark a shell can add to a value.
+  const id = process.env.AI_MODEL?.trim();
   return MODELS.find((m) => m.id === id)?.id ?? DEFAULT_MODEL;
 }
