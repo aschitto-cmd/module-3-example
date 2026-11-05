@@ -116,7 +116,15 @@ export async function askCopper({
       }
       progress.status = "done";
       if (!progress.reply.trim()) progress.reply = SORRY;
-    } catch {
+    } catch (error) {
+      // Logged on the server (terminal or Vercel logs) so failures can be traced.
+      console.error("[ask-copper] failed:", error);
+      // TEMP DEBUG: not shown in the panel; remove once the Vercel failure is found.
+      (progress as Progress & { debug?: string }).debug =
+        `${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`.slice(
+          0,
+          400,
+        );
       progress.status = "error";
       if (!progress.reply.trim()) progress.reply = SORRY;
     }
