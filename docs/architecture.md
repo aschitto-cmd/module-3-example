@@ -109,7 +109,8 @@ fifth tool, `search_docs`.
 | Index build | `scripts/build-index.mjs` (`npm run build-index`) | One-time: splits each page into passages of up to 3 sentences, starts each with its document title, embeds them all and writes `lib/copper/data/doc-index.json` (131 passages, 768 numbers each) |
 | Search | `lib/copper/assistant/search-docs.ts` | Loads the index into memory when the server starts; embeds the question and returns the 5 passages with the highest cosine similarity, each with title, page and a `/docs/<file>.pdf#page=N` link |
 | Tool | `lib/copper/assistant/tools.ts` | `search_docs({ query })` |
-| Instructions | `lib/copper/assistant/instructions.ts` | Use `search_docs` for setup, troubleshooting, warranty and policy; answer only from the passages and cite document and page |
+| Instructions | `lib/copper/assistant/instructions.ts` | Use `search_docs` for setup, troubleshooting, warranty and policy; answer only from the passages; end every sentence with `[Document title, p. N]`; if the passages don't answer it, say "I couldn't find that in our support docs." and suggest the Copper Crew |
+| Citations | `CitedText` in `components/copper/ask-copper.tsx` | Turns each `[Document title, p. N]` in the reply into a link to `/docs/<file>.pdf#page=N`; unknown titles stay plain text |
 | Component | `components/copper/ask-copper.tsx` | The `search_docs` tool card lists the 5 passages as links that open the PDF at that page, with their scores |
 | AI calls | `callEmbed` in `lib/ai/call.ts`, `{ module: 3, feature: "search-docs" }` | `gemini-embedding-001`, one short embedding per question (a fraction of a cent) |
 | Try it | `npm run try-search -- "reset Wi-Fi"` | Prints the 5 closest passages for a question, without the chat |

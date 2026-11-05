@@ -34,6 +34,7 @@ import {
   TOOL_LABELS,
 } from "@/lib/copper/assistant/progress";
 import { formatUsd, getPlans, getProducts } from "@/lib/copper/catalog";
+import { DOCUMENTS } from "@/lib/copper/documents";
 import { cn } from "@/lib/utils";
 
 const STARTERS = [
@@ -383,7 +384,7 @@ function Answer({
             </div>
           )}
           <p className="text-sm whitespace-pre-wrap">
-            {reply}
+            <CitedText text={reply} />
             {working && (
               <span className="bg-primary ml-0.5 inline-block h-4 w-0.5 animate-pulse align-middle" />
             )}
@@ -421,6 +422,44 @@ function Station({
       {children}
     </section>
   );
+}
+
+/** A citation like [Copper Home User Guide, p. 9]. */
+const CITATION = /\[([^\][]+?),\s*(?:p\.|page)\s*(\d+)\]/g;
+
+/** The PDF link for a cited document title and page, or null if unknown. */
+function citationUrl(title: string, page: string): string | null {
+  const doc = DOCUMENTS.find(
+    (d) => d.title.toLowerCase() === title.trim().toLowerCase(),
+  );
+  return doc ? `${doc.file}#page=${page}` : null;
+}
+
+/** Copper's reply, with each [Document, p. N] turned into a link to that page. */
+function CitedText({ text }: { text: string }) {
+  const parts: ReactNode[] = [];
+  let last = 0;
+  for (const match of text.matchAll(CITATION)) {
+    const [whole, title, page] = match;
+    const url = citationUrl(title, page);
+    if (!url) continue;
+    parts.push(text.slice(last, match.index));
+    parts.push(
+      <a
+        key={match.index}
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="citation"
+        className="text-primary font-medium underline underline-offset-2"
+      >
+        {whole}
+      </a>,
+    );
+    last = match.index + whole.length;
+  }
+  parts.push(text.slice(last));
+  return <>{parts}</>;
 }
 
 /** Thought summaries arrive as markdown: render **bold** and `code`. */
