@@ -125,6 +125,9 @@ The build script calls Google directly because it's a plain Node script and
 can't import `lib/ai/call.ts`; the app's question-time call goes through
 `callEmbed`. Re-run `npm run build-index` whenever a PDF changes.
 
-**Risks and open questions:** passages are cut by sentence, so a table row
+**Risks and open questions:** the free Gemini key allows only a few requests
+a minute, and each answer that uses a tool makes two model calls. Over the
+limit, Google returns a quota error; Ask Copper then asks the customer to wait
+a minute (and logs the error) instead of "something went wrong". Passages are cut by sentence, so a table row
 can be split across two passages (C-47's meaning and its "contact the Copper
 Crew" line land in neighbouring passages; both are usually in the top 5).
